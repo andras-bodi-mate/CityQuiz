@@ -1,0 +1,478 @@
+[
+    {
+        "name": "Ajka",
+        "position": [
+            142,
+            203
+        ]
+    },
+    {
+        "name": "Algyő",
+        "position": [
+            362,
+            291
+        ]
+    },
+    {
+        "name": "Baja",
+        "position": [
+            256,
+            312
+        ]
+    },
+    {
+        "name": "Balassagyarmat",
+        "position": [
+            284,
+            91
+        ]
+    },
+    {
+        "name": "Balatonfüred",
+        "position": [
+            168,
+            220
+        ]
+    },
+    {
+        "name": "Berente",
+        "position": [
+            392,
+            71
+        ]
+    },
+    {
+        "name": "Budapest",
+        "position": [
+            264,
+            158
+        ]
+    },
+    {
+        "name": "Békéscsaba",
+        "position": [
+            431,
+            253
+        ]
+    },
+    {
+        "name": "Bük",
+        "position": [
+            76,
+            168
+        ]
+    },
+    {
+        "name": "Debrecen",
+        "position": [
+            454,
+            163
+        ]
+    },
+    {
+        "name": "Dunaújváros",
+        "position": [
+            254,
+            221
+        ]
+    },
+    {
+        "name": "Eger",
+        "position": [
+            370,
+            112
+        ]
+    },
+    {
+        "name": "Esztergom",
+        "position": [
+            238,
+            129
+        ]
+    },
+    {
+        "name": "Gyula",
+        "position": [
+            447,
+            257
+        ]
+    },
+    {
+        "name": "Gyöngyös",
+        "position": [
+            335,
+            126
+        ]
+    },
+    {
+        "name": "Győr",
+        "position": [
+            159,
+            150
+        ]
+    },
+    {
+        "name": "Gödöllő",
+        "position": [
+            288,
+            144
+        ]
+    },
+    {
+        "name": "Hajdúszoboszló",
+        "position": [
+            416,
+            179
+        ]
+    },
+    {
+        "name": "Harkány",
+        "position": [
+            201,
+            350
+        ]
+    },
+    {
+        "name": "Hatvan",
+        "position": [
+            314,
+            139
+        ]
+    },
+    {
+        "name": "Hegyeshalom",
+        "position": [
+            111,
+            107
+        ]
+    },
+    {
+        "name": "Hollókő",
+        "position": [
+            308,
+            100
+        ]
+    },
+    {
+        "name": "Hévíz",
+        "position": [
+            110,
+            239
+        ]
+    },
+    {
+        "name": "Hódmezővásárhely",
+        "position": [
+            368,
+            285
+        ]
+    },
+    {
+        "name": "Jászberény",
+        "position": [
+            334,
+            157
+        ]
+    },
+    {
+        "name": "Jászfényszaru",
+        "position": [
+            323,
+            156
+        ]
+    },
+    {
+        "name": "Kalocsa",
+        "position": [
+            257,
+            272
+        ]
+    },
+    {
+        "name": "Kaposvár",
+        "position": [
+            159,
+            290
+        ]
+    },
+    {
+        "name": "Kecskemét",
+        "position": [
+            316,
+            228
+        ]
+    },
+    {
+        "name": "Keszthely",
+        "position": [
+            114,
+            242
+        ]
+    },
+    {
+        "name": "Komárom",
+        "position": [
+            189,
+            129
+        ]
+    },
+    {
+        "name": "Kőszeg",
+        "position": [
+            61,
+            167
+        ]
+    },
+    {
+        "name": "Makó",
+        "position": [
+            381,
+            307
+        ]
+    },
+    {
+        "name": "Miskolc",
+        "position": [
+            404,
+            89
+        ]
+    },
+    {
+        "name": "Mohács",
+        "position": [
+            233,
+            335
+        ]
+    },
+    {
+        "name": "Nagykanizsa",
+        "position": [
+            94,
+            277
+        ]
+    },
+    {
+        "name": "Nyíregyháza",
+        "position": [
+            480,
+            103
+        ]
+    },
+    {
+        "name": "Orosháza",
+        "position": [
+            396,
+            268
+        ]
+    },
+    {
+        "name": "Paks",
+        "position": [
+            246,
+            261
+        ]
+    },
+    {
+        "name": "Pápa",
+        "position": [
+            136,
+            177
+        ]
+    },
+    {
+        "name": "Pécs",
+        "position": [
+            195,
+            324
+        ]
+    },
+    {
+        "name": "Salgótarján",
+        "position": [
+            323,
+            89
+        ]
+    },
+    {
+        "name": "Siófok",
+        "position": [
+            181,
+            228
+        ]
+    },
+    {
+        "name": "Sopron",
+        "position": [
+            65,
+            133
+        ]
+    },
+    {
+        "name": "Szeged",
+        "position": [
+            358,
+            297
+        ]
+    },
+    {
+        "name": "Szekszárd",
+        "position": [
+            235,
+            294
+        ]
+    },
+    {
+        "name": "Szentendre",
+        "position": [
+            265,
+            136
+        ]
+    },
+    {
+        "name": "Szentgotthárd",
+        "position": [
+            37,
+            216
+        ]
+    },
+    {
+        "name": "Szolnok",
+        "position": [
+            355,
+            196
+        ]
+    },
+    {
+        "name": "Szombathely",
+        "position": [
+            65,
+            185
+        ]
+    },
+    {
+        "name": "Százhalombatta",
+        "position": [
+            245,
+            184
+        ]
+    },
+    {
+        "name": "Székesfehérvár",
+        "position": [
+            213,
+            193
+        ]
+    },
+    {
+        "name": "Sárospatak",
+        "position": [
+            466,
+            60
+        ]
+    },
+    {
+        "name": "Tata",
+        "position": [
+            204,
+            139
+        ]
+    },
+    {
+        "name": "Tatabánya",
+        "position": [
+            211,
+            149
+        ]
+    },
+    {
+        "name": "Tihany",
+        "position": [
+            167,
+            225
+        ]
+    },
+    {
+        "name": "Tiszaújváros",
+        "position": [
+            424,
+            107
+        ]
+    },
+    {
+        "name": "Tokaj",
+        "position": [
+            453,
+            84
+        ]
+    },
+    {
+        "name": "Veresegyház",
+        "position": [
+            284,
+            134
+        ]
+    },
+    {
+        "name": "Veszprém",
+        "position": [
+            170,
+            204
+        ]
+    },
+    {
+        "name": "Visegrád",
+        "position": [
+            259,
+            124
+        ]
+    },
+    {
+        "name": "Visonta",
+        "position": [
+            342,
+            125
+        ]
+    },
+    {
+        "name": "Vác",
+        "position": [
+            272,
+            124
+        ]
+    },
+    {
+        "name": "Várpalota",
+        "position": [
+            191,
+            193
+        ]
+    },
+    {
+        "name": "Zalaegerszeg",
+        "position": [
+            82,
+            233
+        ]
+    },
+    {
+        "name": "Zalakaros",
+        "position": [
+            104,
+            265
+        ]
+    },
+    {
+        "name": "Záhony",
+        "position": [
+            513,
+            51
+        ]
+    },
+    {
+        "name": "Ózd",
+        "position": [
+            363,
+            73
+        ]
+    }
+]
