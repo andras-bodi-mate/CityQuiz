@@ -2,13 +2,13 @@
     <div class="d-flex flex-column fill-height">
         <div class="d-flex justify-space-between align-center pa-2">
             <v-chip>
-                <p>{{ numSolvedCities }} / {{ markers.length }}</p>
+                <p>{{ getNumSolvedCities() }} / {{ markers.length }}</p>
                 <v-divider class="ml-2 mr-2" vertical inset></v-divider>
-                <p>{{ solvedPercentage }}</p>
+                <p>{{ getPointsPercentage() + "%" }}</p>
             </v-chip>
-            <div class="d-flex ga-2 align-center">
+            <div v-if="nextMarkerIndex !== -1" class="d-flex ga-2 align-center">
                 <p class="d-none d-sm-block ma-0">Kattints:</p>
-                <v-chip text="Miskolc"></v-chip>
+                <v-chip :text="markers[nextMarkerIndex].name"></v-chip>
             </div>
             <div class="d-flex ga-2 align-center">
                 <v-chip :text="elapsedTime"></v-chip>
@@ -16,27 +16,41 @@
                 </v-icon-btn>
             </div>
         </div>
-        <v-card class="d-flex flex-grow-1 align-center justify-center w-100 pa-0" elevation="4">
+        <v-card v-show="panzoomInstance" class="d-flex flex-grow-1 align-center justify-center w-100 pa-0" elevation="4">
             <div ref="zoomContent" class="d-flex align-center justify-center w-100 h-100" style="touch-action: manipulation;">
-                <div class="position-relative d-inline-block">
+                <div class="position-relative d-inline-block zoom-container">
                     <img
                         ref="map"
                         src="@/assets/hungaryCities.png"
                         alt="Map"
-                        class="d-block"
-                        style="max-width: 100%; max-height: 100%;"
+                        class="d-block map-image"
                     />
     
                     <div
                         v-for="marker in markers"
-                        class="position-absolute translate-middle"
-                        :style="asRelativeCoordinates(marker)"
-                    >
+                        class="position-absolute"
+                        :style="markerRelativePositioning(marker)"
+                        >
                         <img
+                            class="d-block marker-icon"
                             :src="markerPaths[marker.state]"
-                            class="d-block"
-                            style="width: 15px; height: 15px; pointer-events: none;"
+                            :style="getMarkerIconFilter(marker)"
                         />
+
+                        <p
+                            v-if="marker.name === wrongMarkerName"
+                            class="text-red ma-0 text-center position-absolute"
+                            style="
+                                left: 50%;
+                                top: 5px;
+                                transform: translateX(-50%);
+                                white-space: nowrap;
+                                font-size: smaller;
+                                pointer-events: none;
+                            "
+                        >
+                            {{ marker.name }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -49,8 +63,8 @@
                     <div class="d-flex ml-10 mr-10 flex-wrap">
                         <div class="d-flex ga-2 align-center mr-5">
                             <p>Elért pontszám:</p>
-                            <v-chip size="large" color="green">
-                                {{ solvedPercentage }}
+                            <v-chip size="large" :color="getPercentageColor(getPointsPercentage())">
+                                {{ getPointsPercentage() + "%" }}
                             </v-chip>
                         </div>
                         <div class="d-flex ga-2 align-center">
@@ -117,6 +131,8 @@
     const isResultsDialogOpen = ref(false);
     const isRestartDialogOpen = ref(false);
     const didFinish = ref(false);
+    const nextMarkerIndex = ref(-1);
+    const wrongMarkerName = ref("");
 
     let dragStart = new Point(0, 0);
     let panzoomInstance = null;
@@ -139,21 +155,15 @@
         }
     )
 
-    const numSolvedCities = computed(
+    const numPoints = computed(
         () => {
-            let unsolvedCities = 0;
+            let points = 0;
             markers.value.forEach((city) => {
-                if (city.state == MarkerState.Solved) {
-                    unsolvedCities++;
+                if (city.state == MarkerState.Solved && city.numFailedGuesses === 0) {
+                    points++;
                 }
             });
-            return unsolvedCities;
-        }
-    )
-
-    const solvedPercentage = computed(
-        () => {
-            return `${Math.round((numSolvedCities.value / markers.value.length) * 100)}%`;
+            return points;
         }
     )
 
@@ -185,13 +195,14 @@
     )
 
     onMounted(() => {
-        markers.value = cities.slice(0, 3).map(city => ({
+        markers.value = cities.slice(0, 5).map(city => ({
             name: city.name,
             pos: new Point(city.position[0], city.position[1]),
-            state: MarkerState.Unsolved
+            state: MarkerState.Unsolved,
+            numFailedGuesses: 0
         }))
-
-        console.log(markers.value)
+        
+        getNextMarker();
 
         panzoomInstance = panzoom(zoomContent.value, {
             maxZoom: 4,
@@ -216,12 +227,65 @@
         }
     });
 
-    function asRelativeCoordinates(marker) {
-        if (!map.value) return {};
+    function getPointsPercentage() {
+        if (getNumSolvedCities() === 0) {
+            return 0;
+        }
+        else {
+            return Math.round((numPoints.value / getNumSolvedCities()) * 100);
+        }
+    }
+
+    function getNumSolvedCities() {
+        let numSolvedCities = 0;
+        markers.value.forEach((value) => {
+            if (value.state === MarkerState.Solved) {
+                numSolvedCities++;
+            }
+        });
+        return numSolvedCities;
+    }
+
+    function getPercentageColor(percentage) {
+        if (percentage < 25) {
+            return "red";
+        }
+        else if (percentage < 50) {
+            return "orange";
+        }
+        else if (percentage < 75) {
+            return "yellow";
+        }
+        else {
+            return "green";
+        }
+    }
+
+    function markerRelativePositioning(marker) {
+        if (!map.value) return {}
 
         return {
             left: ((marker.pos.x - 7.5) / map.value.naturalWidth) * 100 + '%',
-            top: ((marker.pos.y - 7.5) / map.value.naturalHeight) * 100 + '%'
+            top: ((marker.pos.y- 7.5) / map.value.naturalHeight) * 100 + '%',
+        }
+    }
+
+    function getMarkerIconFilter(marker) {
+        let filter = "grayscale(100%) brightness(500%)";
+        if (marker.numFailedGuesses === 0) {
+            filter = "grayscale(100%) brightness(500%)";
+        }
+        else if (marker.numFailedGuesses <= 2) {
+            if (marker.state === MarkerState.Solved) {
+                filter = "hue-rotate(60deg) brightness(400%)";
+            }
+        }
+        else {
+            filter = "";
+        }
+
+        return {
+            "filter": filter
         };
     }
 
@@ -229,8 +293,8 @@
         return Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2);
     }
 
-    function sortUnsolvedMarkersByDistance(point) {
-        markers.value.sort((a, b) => {
+    function getDistanceSortedMarkers(point) {
+        const sortedMarkers = markers.value.toSorted((a, b) => {
             const aSolved = a.state === MarkerState.Solved;
             const bSolved = b.state === MarkerState.Solved;
 
@@ -247,10 +311,13 @@
 
             return 0;
         });
+
+        return sortedMarkers;
     }
 
     function getClosestMarker(mousePos) {
-        const closestMarker = markers.value[0];
+        const sortedMarkers = getDistanceSortedMarkers(mousePos);
+        const closestMarker = sortedMarkers[0];
         const transform = panzoomInstance.getTransform();
         const transformedHoverDistance = hoverDistance / transform.scale;
         if (closestMarker.state !== MarkerState.Solved &&
@@ -296,8 +363,6 @@
     function onMouseMove(event) {
         const imagePos = getMouseImagePos(getEventPos(event));
 
-        sortUnsolvedMarkersByDistance(imagePos);
-
         markers.value.forEach(marker => {
             if (marker.state === MarkerState.Hovered) {
                 marker.state = MarkerState.Unsolved;
@@ -313,23 +378,33 @@
     function onMousePress(event) {
         const imagePos = getMouseImagePos(getEventPos(event));
 
-        sortUnsolvedMarkersByDistance(imagePos);
-
         const closestMarker = getClosestMarker(imagePos);
-        if (closestMarker) {
-            closestMarker.state = MarkerState.Solved;
+
+        if (!closestMarker) {
+            return;
         }
-        if (markers.value.length === numSolvedCities.value) {
-            didFinish.value = true;
-            isResultsDialogOpen.value = true;
-            pauseTimer();
+
+        wrongMarkerName.value = "";
+
+        if (closestMarker.name === markers.value[nextMarkerIndex.value].name) {
+            closestMarker.state = MarkerState.Solved;
+            getNextMarker();
+
+            if (markers.value.length === getNumSolvedCities()) {
+                didFinish.value = true;
+                isResultsDialogOpen.value = true;
+                pauseTimer();
+            }
+        }
+        else {
+            markers.value[nextMarkerIndex.value].numFailedGuesses++;
+            wrongMarkerName.value = closestMarker.name;
         }
     }
 
     function onDragStart(event) {
         const dragStartEvent = event.touches[0];
         dragStart = getEventPos(dragStartEvent);
-        console.log(dragStart);
     }
 
     function onDragEnd(event) {
@@ -337,6 +412,19 @@
         const dragEnd = getEventPos(dragEndEvent);
         if (distance2(dragStart, dragEnd) < Math.pow(dragDistanceTreshold, 2)) {
             onMousePress(dragEndEvent);
+        }
+    }
+
+    function getNextMarker() {
+        const unsolvedMarkers = markers.value.map((value, index) => (
+            {
+                value: value,
+                index: index
+            }
+        )).filter((element) => element.value.state === MarkerState.Unsolved);
+
+        if (unsolvedMarkers.length) {
+            nextMarkerIndex.value = unsolvedMarkers[Math.floor(Math.random() * unsolvedMarkers.length)].index;
         }
     }
 
@@ -358,10 +446,30 @@
         didFinish.value = false;
         markers.value.forEach((marker) => {
             marker.state = MarkerState.Unsolved;
+            marker.numFailedGuesses = 0;
         });
+        getNextMarker();
         panzoomInstance.moveTo(0, 0);
         panzoomInstance.zoomAbs(0, 0, 1);
         elapsedSeconds.value = 0;
         resumeTimer();
     }
 </script>
+<style>
+    .marker-icon {
+        width: 15px;
+        height: 15px;
+        pointer-events: none;
+    }
+
+    .map-image {
+        width: 600px;
+        height: 414px;
+    }
+
+    .map-container {
+        overflow: auto;
+        width: 100%;
+        height: 100%
+    }
+</style>

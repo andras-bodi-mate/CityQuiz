@@ -48,13 +48,13 @@
          cy="97.107742"
          cx="184.7861"
          r="21.090357" /><circle
-         style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;paint-order:stroke fill markers"
+         style="fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;paint-order:stroke fill markers"
          id="path1-5"
          cy="97.107742"
          cx="184.7861"
          r="14.916108" /><path
          d="m 184.78636,56.974015 a 40.13382,40.13382 0 0 0 -40.13399,40.133465 40.13382,40.13382 0 0 0 40.13399,40.13399 40.13382,40.13382 0 0 0 40.13347,-40.13399 40.13382,40.13382 0 0 0 -40.13347,-40.133465 z m 0,8.695595 a 31.438139,31.438139 0 0 1 31.43787,31.43787 31.438139,31.438139 0 0 1 -31.43787,31.4384 31.438139,31.438139 0 0 1 -31.43839,-31.4384 31.438139,31.438139 0 0 1 31.43839,-31.43787 z"
-         style="display:inline;opacity:0.55;fill:#808080;fill-opacity:1;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;paint-order:stroke fill markers"
+         style="display:inline;opacity:0.55;fill:#181818;fill-opacity:1;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;paint-order:stroke fill markers"
          id="path5"
          inkscape:export-filename="hovered.svg"
          inkscape:export-xdpi="96"
