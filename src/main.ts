@@ -7,5 +7,11 @@ import 'unfonts.css';
 const app = createApp(App);
 registerPlugins(app);
 
+if (import.meta.hot) {
+   import.meta.hot.on('vite:beforeFullReload', () => {
+      throw '(skipping full reload)';
+   });
+}
+
 app.use(router);
 app.mount('#app');

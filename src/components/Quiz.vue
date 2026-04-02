@@ -1,19 +1,40 @@
 <template>
     <div class="d-flex flex-column fill-height">
         <div class="d-flex justify-space-between align-center pa-2">
-            <v-chip>
-                <p>{{ getNumSolvedCities() }} / {{ markers.length }}</p>
-                <v-divider class="ml-2 mr-2" vertical inset></v-divider>
-                <p>{{ getPointsPercentage() + "%" }}</p>
-            </v-chip>
-            <div v-if="nextMarkerIndex !== -1" class="d-flex ga-2 align-center">
-                <p class="d-none d-sm-block ma-0">Kattints:</p>
-                <v-chip :text="markers[nextMarkerIndex].name"></v-chip>
+            <div class="d-flex ga-2 align-center">
+                <v-icon-btn v-if="!doCombineActionButtons" icon="mdi-cog" v-ripple @click="openSettings" />
+                <v-chip>
+                    <p>{{ getNumSolvedCities() }} / {{ markers.length }}</p>
+                    <v-divider class="ml-2 mr-2" vertical inset></v-divider>
+                    <p>{{ getPointsPercentage() + "%" }}</p>
+                </v-chip>
             </div>
+            <div v-if="!didFinish && nextMarkerIndex !== -1" class="d-flex ga-2 align-center">
+                <p v-if="!doCombineActionButtons" class="ma-0">Kattints:</p>
+                <v-chip :text="markers[nextMarkerIndex].name"></v-chip>
+            </div>  
             <div class="d-flex ga-2 align-center">
                 <v-chip :text="elapsedTime"></v-chip>
-                <v-icon-btn icon="mdi-reload" v-ripple @click="restartButtonClicked">
-                </v-icon-btn>
+                <v-icon-btn v-if="!doCombineActionButtons" icon="mdi-reload" v-ripple @click="restartButtonClicked" />
+                <v-menu v-model="isButtonMenuOpen" v-else location="bottom end">
+                    <template #activator="{ props }">
+                        <v-icon-btn
+                        v-bind="props"
+                        icon="mdi-dots-vertical"
+                        v-ripple
+                        />
+                    </template>
+
+                    <v-list class="pa-0" rounded="xl">
+                        <v-list-item @click="restartButtonClicked" prepend-icon="mdi-refresh">
+                            <v-list-item-title>Újrakezdés</v-list-item-title>
+                        </v-list-item>
+
+                        <v-list-item @click="openSettings" prepend-icon="mdi-cog">
+                            <v-list-item-title>Beállítások</v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
             </div>
         </div>
         <v-card v-show="panzoomInstance" class="d-flex flex-grow-1 align-center justify-center w-100 pa-0" elevation="4">
@@ -30,8 +51,9 @@
                         v-for="marker in markers"
                         class="position-absolute"
                         :style="markerRelativePositioning(marker)"
-                        >
+                    >
                         <img
+                            v-if="!doHideMarkers || (marker.numFailedGuesses >= 3 && marker.state !== MarkerState.Solved)"
                             class="d-block marker-icon"
                             :src="markerPaths[marker.state]"
                             :style="getMarkerIconFilter(marker)"
@@ -57,10 +79,16 @@
         </v-card>
     </div>
     <v-dialog v-model="isResultsDialogOpen" max-width="500">
-        <v-card class="d-flex" title="Szép munka!" rounded="xl">
+        <v-card class="d-flex" :title="didRunOutOfTime ? 'Sajnos lejárt az idő' : 'Szép munka'" rounded="xl">
             <div class="d-flex justify-center">
                 <div class="d-flex flex-column">
                     <div class="d-flex ml-10 mr-10 flex-wrap">
+                        <div v-if="didRunOutOfTime" class="d-flex ga-2 align-center mr-5">
+                            <p>Bejelölt városok</p>
+                            <v-chip>
+                                <p>{{ getNumSolvedCities() }} / {{ markers.length }}</p>
+                            </v-chip>
+                        </div>
                         <div class="d-flex ga-2 align-center mr-5">
                             <p>Elért pontszám:</p>
                             <v-chip size="large" :color="getPercentageColor(getPointsPercentage())">
@@ -75,19 +103,34 @@
                         </div>
                     </div>
                     <v-card-actions class="d-flex justify-space-between mt-5">
-                        <v-btn class="ma-2" text="Bezárás" prepend-icon="mdi-close" rounded="pill" variant="tonal" @click="closeResultsDialog"></v-btn>
+                        <v-btn class="ma-2" text="Bezárás" prepend-icon="mdi-arrow-left" rounded="pill" variant="tonal" @click="closeResultsDialog"></v-btn>
                         <v-btn class="ma-2" text="Újrakezdés" prepend-icon="mdi-reload" rounded="pill" variant="tonal" @click="resetQuiz"></v-btn>
                     </v-card-actions>
                 </div>
             </div>
         </v-card>
     </v-dialog>
-    <v-dialog v-model="isRestartDialogOpen" max-width="500">
-        <v-card title="Megerősítés" subtitle="Biztosan újra akarod kezdeni?" rounded="xl">
-            <v-card-actions class="d-flex justify-space-between mt-5">
-                <v-btn class="ma-2" text="Vissza" prepend-icon="mdi-close" rounded="pill" variant="tonal" @click="closeRestartDialog"></v-btn>
-                <v-btn class="ma-2" text="Újrakezdés" prepend-icon="mdi-reload" rounded="pill" variant="tonal" @click="resetQuiz"></v-btn>
-            </v-card-actions>
+    <v-dialog v-model="isRestartDialogOpen" max-width="400">
+        <v-card title="Megerősítés" text="Biztosan újra akarod kezdeni?" rounded="xl">
+            <div class="pa-3">
+                <v-card-actions class="d-flex justify-space-between">
+                    <v-btn text="Vissza" prepend-icon="mdi-arrow-left" rounded="pill" variant="tonal" @click="closeRestartDialog"></v-btn>
+                    <v-btn text="Újrakezdés" prepend-icon="mdi-reload" rounded="pill" variant="tonal" @click="resetQuiz"></v-btn>
+                </v-card-actions>
+            </div>
+        </v-card>
+    </v-dialog>
+    <v-dialog v-model="isSettingsOpen" max-width="500">
+        <v-card class="d-flex" title="Beállítások" rounded="xl">
+            <div class="pa-3">
+                <div class="ml-7">
+                    <v-switch v-model="doHideMarkers" density="compact" label="Város jelzések elrejtése"></v-switch>
+                    <v-switch v-model="isTimeLimitEnabled" density="compact" label="5 perces időlimit"></v-switch>
+                </div>
+                <v-card-actions class="d-flex justify-left">
+                    <v-btn text="Vissza" prepend-icon="mdi-arrow-left" rounded="pill" variant="tonal" @click="isSettingsOpen = false"></v-btn>
+                </v-card-actions>
+            </div>
         </v-card>
     </v-dialog>
 </template>
@@ -95,6 +138,7 @@
 <script setup>
     import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
     import { useIntervalFn } from '@vueuse/core'
+    import { useDisplay } from 'vuetify'
     import panzoom from 'panzoom';
     import unsolved from '@/assets/markers/unsolved.svg';
     import hovered from '@/assets/markers/hovered.svg';
@@ -130,7 +174,12 @@
     const elapsedSeconds = ref(0);
     const isResultsDialogOpen = ref(false);
     const isRestartDialogOpen = ref(false);
+    const isSettingsOpen = ref(false);
+    const isButtonMenuOpen = ref(false);
     const didFinish = ref(false);
+    const didRunOutOfTime = ref(false);
+    const doHideMarkers = ref(false);
+    const isTimeLimitEnabled = ref(false);
     const nextMarkerIndex = ref(-1);
     const wrongMarkerName = ref("");
 
@@ -140,6 +189,14 @@
     function padNum(num) {
         return num.toString().padStart(2, "0");
     }
+
+    const { width: viewportWidth } = useDisplay()
+
+    const doCombineActionButtons = computed(
+        () => {
+            return viewportWidth.value < 550;
+        }
+    )
 
     const elapsedTime = computed(
         () => {
@@ -167,14 +224,14 @@
         }
     )
 
-    watch(isResultsDialogOpen, (value, oldValue, onCleanup) => {
+    watch(isResultsDialogOpen, value => {
         if (value) {
             didFinish.value = true;
         }
     });
 
-    watch(isRestartDialogOpen, (value, oldValue, onCleanup) => {
-        if (value) {
+    watch([isRestartDialogOpen, isSettingsOpen], ([value1, value2]) => {
+        if (value1 || value2) {
             if (!didFinish.value) {
                 pauseTimer();
             }
@@ -186,16 +243,24 @@
         }
     })
 
-    const { pause: pauseTimer, resume: resumeTimer, isActive: isTimerActive} = useIntervalFn(
+    const { pause: pauseTimer, resume: resumeTimer } = useIntervalFn(
         () => { 
-            elapsedSeconds.value++;
+            if (isTimeLimitEnabled.value && elapsedSeconds.value >= 5 * 60) {
+                didFinish.value = true;
+                didRunOutOfTime.value = true;
+                isResultsDialogOpen.value = true;
+                pauseTimer();
+            }
+            else {
+                elapsedSeconds.value++;
+            }
         },
         1000,
         { immediate: false }
     )
 
     onMounted(() => {
-        markers.value = cities.slice(0, 5).map(city => ({
+        markers.value = cities.map(city => ({
             name: city.name,
             pos: new Point(city.position[0], city.position[1]),
             state: MarkerState.Unsolved,
@@ -212,7 +277,7 @@
         });
 
         zoomContent.value.addEventListener("mousemove", onMouseMove);
-        zoomContent.value.addEventListener("mouseup", onMousePress);
+        zoomContent.value.addEventListener("mouseup", onMouseRelease);
         zoomContent.value.addEventListener("touchstart", onDragStart);
         zoomContent.value.addEventListener("touchend", onDragEnd);
 
@@ -361,6 +426,9 @@
     }
 
     function onMouseMove(event) {
+        if (event.buttons !== 0) {
+            isButtonMenuOpen.value = false;
+        }
         const imagePos = getMouseImagePos(getEventPos(event));
 
         markers.value.forEach(marker => {
@@ -369,18 +437,29 @@
             }
         });
 
+        if (didRunOutOfTime.value) {
+            return;
+        } 
+
         const closestMarker = getClosestMarker(imagePos);
         if (closestMarker) {
             closestMarker.state = MarkerState.Hovered;
         }
     }
 
-    function onMousePress(event) {
+    function onMouseRelease(event) {
         const imagePos = getMouseImagePos(getEventPos(event));
 
         const closestMarker = getClosestMarker(imagePos);
 
         if (!closestMarker) {
+            if (doHideMarkers) {
+                markers.value[nextMarkerIndex.value].numFailedGuesses++;
+            }
+            return;
+        }
+
+        if (didRunOutOfTime.value) {
             return;
         }
 
@@ -403,6 +482,7 @@
     }
 
     function onDragStart(event) {
+        isButtonMenuOpen.value = false;
         const dragStartEvent = event.touches[0];
         dragStart = getEventPos(dragStartEvent);
     }
@@ -411,7 +491,7 @@
         const dragEndEvent = event.changedTouches[0];
         const dragEnd = getEventPos(dragEndEvent);
         if (distance2(dragStart, dragEnd) < Math.pow(dragDistanceTreshold, 2)) {
-            onMousePress(dragEndEvent);
+            onMouseRelease(dragEndEvent);
         }
     }
 
@@ -436,6 +516,10 @@
         isRestartDialogOpen.value = true;
     }
 
+    function openSettings() {
+        isSettingsOpen.value = true;
+    }
+
     function closeRestartDialog() {
         isRestartDialogOpen.value = false;
     }
@@ -443,11 +527,16 @@
     function resetQuiz() {
         isRestartDialogOpen.value = false;
         isResultsDialogOpen.value = false;
+        isButtonMenuOpen.value = false;
+
+        wrongMarkerName.value = "";
         didFinish.value = false;
+        didRunOutOfTime.value = false;
         markers.value.forEach((marker) => {
             marker.state = MarkerState.Unsolved;
             marker.numFailedGuesses = 0;
         });
+
         getNextMarker();
         panzoomInstance.moveTo(0, 0);
         panzoomInstance.zoomAbs(0, 0, 1);
