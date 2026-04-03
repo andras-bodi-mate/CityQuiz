@@ -123,9 +123,10 @@
     <v-dialog v-model="isSettingsOpen" max-width="500">
         <v-card class="d-flex" title="Beállítások" rounded="xl">
             <div class="pa-3">
-                <div class="ml-7">
-                    <v-switch v-model="doHideMarkers" density="compact" label="Város jelzések elrejtése"></v-switch>
-                    <v-switch v-model="isTimeLimitEnabled" density="compact" label="5 perces időlimit"></v-switch>
+                <div class="ml-5">
+                    <v-btn class="mb-2" :prepend-icon="getThemeIcon(getNextCycledTheme())" text="Színtéma változtatása" variant="tonal" rounded="pill" @click="cycleTheme"></v-btn>
+                    <v-switch v-model="doHideMarkers" class="ml-2" density="compact" label="Város jelzések elrejtése" hide-details></v-switch>
+                    <v-switch v-model="isTimeLimitEnabled" class="ml-2" density="compact" label="5 perces időlimit" hide-details></v-switch>
                 </div>
                 <v-card-actions class="d-flex justify-left">
                     <v-btn text="Vissza" prepend-icon="mdi-arrow-left" rounded="pill" variant="tonal" @click="isSettingsOpen = false"></v-btn>
@@ -137,21 +138,21 @@
 
 <script setup>
     import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
-    import { useIntervalFn } from '@vueuse/core'
-    import { useDisplay } from 'vuetify'
+    import { useIntervalFn, useLocalStorage } from '@vueuse/core';
+    import { useDisplay, useTheme } from 'vuetify';
     import panzoom from 'panzoom';
     import unsolved from '@/assets/markers/unsolved.svg';
     import hovered from '@/assets/markers/hovered.svg';
     import solved from '@/assets/markers/solved.svg';
     import cities from '@/assets/cities.json';
-
+    
     class Point {
         constructor(x, y) {
             this.x = x;
             this.y = y;
         }
     }
-
+    
     const MarkerState = {
         Unsolved: 0,
         Hovered: 1,
@@ -164,11 +165,12 @@
         [MarkerState.Solved]: solved
     }
 
+    
     const markers = ref([]);
-
+    
     const hoverDistance = 10;
     const dragDistanceTreshold = 10;
-
+    
     const zoomContent = ref(null);
     const map = ref(null);
     const elapsedSeconds = ref(0);
@@ -182,7 +184,7 @@
     const isTimeLimitEnabled = ref(false);
     const nextMarkerIndex = ref(-1);
     const wrongMarkerName = ref("");
-
+    
     let dragStart = new Point(0, 0);
     let panzoomInstance = null;
 
@@ -191,7 +193,13 @@
     }
 
     const { width: viewportWidth } = useDisplay()
+    const theme = useTheme()
+    const storedTheme = useLocalStorage("theme", theme.name.value);
 
+    watch(storedTheme, (value) => {
+        theme.change(value);
+    }, { immediate: true });
+    
     const doCombineActionButtons = computed(
         () => {
             return viewportWidth.value < 550;
@@ -273,7 +281,7 @@
             maxZoom: 4,
             minZoom: 1,
             bounds: true,
-            boundsPadding: 0.5,
+            boundsPadding: 0.2
         });
 
         zoomContent.value.addEventListener("mousemove", onMouseMove);
@@ -291,6 +299,34 @@
         if (map.value) {
         }
     });
+
+    function getNextCycledTheme() {
+        switch (storedTheme.value) {
+            case "dark":
+                return "light";
+            case "light":
+                return "system";
+            case "system":
+                return "dark";
+            default:
+                return "system";
+        }
+    }
+
+    function getThemeIcon(themeName) {
+        switch (themeName) {
+            case "dark":
+                return "mdi-moon-waning-crescent";
+            case "light":
+                return "mdi-white-balance-sunny";
+            default:
+                return "mdi-monitor";
+        }
+    }
+
+    function cycleTheme() {
+        storedTheme.value = getNextCycledTheme();
+    }
 
     function getPointsPercentage() {
         if (getNumSolvedCities() === 0) {
@@ -453,7 +489,7 @@
         const closestMarker = getClosestMarker(imagePos);
 
         if (!closestMarker) {
-            if (doHideMarkers) {
+            if (doHideMarkers.value) {
                 markers.value[nextMarkerIndex.value].numFailedGuesses++;
             }
             return;
